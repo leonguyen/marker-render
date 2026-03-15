@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: marker-pdf
+    env: python
+    buildCommand: |
+      pip install -U pip setuptools wheel
+      pip install marker-pdf[full] streamlit streamlit-ace
+      # Pre-download models to avoid cold-start issues (markers needs this)
+      python -c "from marker.models import load_all_models; load_all_models()"
+    startCommand: |
+      streamlit run marker_gui.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9  # Matches marker's PyTorch compat
+      - key: TORCH_DEVICE
+        value: cpu     # Render shared instances lack GPU; upgrade to dedicated for CUDA
+    ram: 8GB
+    cpu: 2
+    plan: starter  # Free tier may OOM; upgrade as needed
+
